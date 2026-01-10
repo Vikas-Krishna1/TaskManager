@@ -70,10 +70,11 @@ def createtodo(request):
     if request.method == "GET":
         return render(request,'todo/createtodo.html', {'form':TodoForm()})
     elif request.method == "POST":
-        try:
-            form = TodoForm(request.POST)
-            new_todo = form.save(commit=False)
-            new_todo.user = request.user
+        form = TodoForm(request.POST)
+
+        if form.is_valid():
+            new_todo = form.save()
+            new_todo.user = request.user   # ✅ REQUIRED
             new_todo.save()
             return redirect('currenttodos')
         except ValueError:
