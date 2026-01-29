@@ -68,17 +68,26 @@ def loginuser(request):
 @login_required
 def createtodo(request):
     if request.method == "GET":
-        return render(request,'todo/createtodo.html', {'form':TodoForm()})
+        return render(request, 'todo/createtodo.html', {'form': TodoForm()})
+
     elif request.method == "POST":
         form = TodoForm(request.POST)
-
         if form.is_valid():
-            new_todo = form.save()
-            new_todo.user = request.user   # ✅ REQUIRED
-            new_todo.save()
+            new_todo = form.save(commit=False)  # do not save yet
+            new_todo.user = request.user         # assign the current user
+            new_todo.save()                      # now save
             return redirect('currenttodos')
-        except ValueError:
-             return render(request,'todo/createtodo.html', {'form':TodoForm(),'error':'Bad data passed in. Try Again'})
+        else:
+            print(form.errors)  # debug output
+            return render(
+                request,
+                'todo/createtodo.html',
+                {
+                    'form': form,
+                    'error': 'Invalid data. Please correct the errors below.'
+                }
+            )
+
 @login_required
 def currenttodos(request):
     todos = Todo.objects.filter(user = request.user, dateTimeCompleted__isnull=True)
